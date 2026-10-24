@@ -1,0 +1,27 @@
+[project]
+name = "handmouse"
+version = "0.1.0"
+description = "Webcam hand-gesture control: cursor, clicks and shortcuts from trained gesture models"
+requires-python = ">=3.10"
+dependencies = [
+  "numpy",
+  "opencv-python",
+  "mediapipe",
+  "pynput",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "ruff"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
