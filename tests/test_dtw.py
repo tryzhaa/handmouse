@@ -42,3 +42,21 @@ def test_pruned_knn_equals_brute_force():
         q = _series(rng)
         brute = y[int(np.argmin([dtw(q, x, 3) for x in X]))]
         assert knn.predict_one(q) == brute
+
+
+def test_stroke_window_crops_to_the_fast_move():
+    from test_rules_eval import along, clip_of
+
+    from handmouse.motion_knn import N_POINTS, trajectory
+    from handmouse.rules import fastest_window
+
+    # 1 s still, 0.3 s fast sweep left, 1 s still (30 fps)
+    frames = along([0, 30, 39, 69], [0, 0, -0.4, -0.4], [0, 0, 0, 0], n=70)
+    c = clip_of(frames, "swipe_left")
+    full, crop = trajectory(c), trajectory(c, stroke_s=0.6)
+    assert crop.shape == (N_POINTS, 2)
+    assert np.isclose(crop[-1, 0], -0.4, atol=0.05)  # whole sweep kept
+    # the cropped path spends far fewer resampled points standing still
+    assert (np.abs(np.diff(crop[:, 0])) > 1e-3).sum() > (np.abs(np.diff(full[:, 0])) > 1e-3).sum()
+    i, j = fastest_window(np.stack(frames)[:, :, :2].mean(axis=1), c.timestamps)
+    assert 25 <= i <= 40 and j > i

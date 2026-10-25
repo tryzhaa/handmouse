@@ -10,7 +10,7 @@ from datetime import datetime
 from pathlib import Path
 
 from .data import Clip, load_clips
-from .motion_knn import fit_knn_dtw
+from .motion_knn import fit_knn_dtw, fit_knn_dtw_stroke
 from .pose_mlp import fit_pose_mlp
 from .rules import classify_clip
 
@@ -94,7 +94,8 @@ def main() -> None:
             "rules-tuned": fit_tuned,
             "mlp": lambda train: fit_pose_mlp(train, chosen),
             "knn-dtw": fit_knn_dtw,
-            "knn-dtw-norm": lambda train: fit_knn_dtw(train, normalise=True)}
+            "knn-dtw-norm": lambda train: fit_knn_dtw(train, normalise=True),
+            "knn-dtw-stroke": lambda train: fit_knn_dtw_stroke(train, chosen)}
     clips = [c for c in load_clips() if c.label != "negative"]
     if not clips:
         sys.exit("no gesture clips in data/raw; run the recorder first")

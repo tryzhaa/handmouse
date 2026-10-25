@@ -34,16 +34,23 @@ def frame_label(lm: np.ndarray) -> str:
     return "other"
 
 
-def fastest_stroke(c: np.ndarray, t: np.ndarray) -> np.ndarray:
-    """Displacement vector of the largest move within any WINDOW_S window."""
-    best = np.zeros(2)
+def fastest_window(c: np.ndarray, t: np.ndarray) -> tuple[int, int]:
+    """Start/end indices of the largest move within any WINDOW_S window ((0, 0) if none)."""
+    best, bi, bj = 0.0, 0, 0
     for i in range(len(c)):
         j = int(np.searchsorted(t, t[i] + WINDOW_S))
         if j >= len(c):
             break
-        if np.linalg.norm(c[j] - c[i]) > np.linalg.norm(best):
-            best = c[j] - c[i]
-    return best
+        d = float(np.linalg.norm(c[j] - c[i]))
+        if d > best:
+            best, bi, bj = d, i, j
+    return bi, bj
+
+
+def fastest_stroke(c: np.ndarray, t: np.ndarray) -> np.ndarray:
+    """Displacement vector of the largest move within any WINDOW_S window."""
+    i, j = fastest_window(c, t)
+    return c[j] - c[i]
 
 
 def classify_clip(landmarks: np.ndarray, timestamps: np.ndarray,
