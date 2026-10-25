@@ -55,10 +55,22 @@ class HandTracker:
         self._lm.close()
 
 
+# Extra lines across the palm, drawn thinner, for a web-like look.
+PALM_CROSS = [(0, 9), (0, 13), (5, 13), (9, 17), (5, 17), (1, 5), (2, 5)]
+
+# BGR
+GLOW, LINE, CROSS, DOT, CORE = (120, 60, 0), (255, 230, 0), (200, 170, 0), (255, 100, 0), (255, 255, 255)
+
+
 def draw(frame: np.ndarray, lm: np.ndarray) -> None:
     h, w = frame.shape[:2]
     pts = [(int(x * w), int(y * h)) for x, y, _ in lm]
+    for a, b in PALM_CROSS:
+        cv2.line(frame, pts[a], pts[b], CROSS, 1, cv2.LINE_AA)
     for a, b in CONNECTIONS:
-        cv2.line(frame, pts[a], pts[b], (0, 200, 0), 2)
+        cv2.line(frame, pts[a], pts[b], GLOW, 6, cv2.LINE_AA)
+    for a, b in CONNECTIONS:
+        cv2.line(frame, pts[a], pts[b], LINE, 2, cv2.LINE_AA)
     for p in pts:
-        cv2.circle(frame, p, 4, (0, 0, 255), -1)
+        cv2.circle(frame, p, 6, DOT, -1, cv2.LINE_AA)
+        cv2.circle(frame, p, 2, CORE, -1, cv2.LINE_AA)

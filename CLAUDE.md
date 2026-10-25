@@ -57,6 +57,13 @@ Changing these invalidates recorded data or published results, so change them on
    once participants have gone.
 2. **Subject-disjoint splits always.** Split by `subject_id` (leave-one-subject-out). No subject
    may appear in both train and test, for any model or any reported number.
+   **v1 exception (deliberate, solo dataset):** with one subject, `evaluate.split_by` splits by
+   recording condition (lighting/hand) instead, results carry `unseen_person: false`, and no
+   v1 number may be described as generalising to new people. Back to strict LOSO once a second
+   subject exists.
+3a. **One shared model for both hands.** Left-hand shapes are mirrored (`features.mirror_for`)
+   before features; wrist velocity stays in screen space so swipe labels keep their meaning.
+   Never train per-hand models.
 3. **Release landmarks only.** Never write raw video to disk unless the participant opted in.
 4. **A non-gesture kill switch, and a dry-run mode.** Anything that drives `pynput` must be
    killable from the keyboard (not from a gesture, which may be exactly what is misfiring) and

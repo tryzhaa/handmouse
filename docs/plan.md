@@ -26,6 +26,16 @@ These override the week-by-week schedule below where they conflict.
 6. **Feature set is x/y-only by default**, with `z` as an explicitly separate, ablated extra —
    because HaGRID's landmarks have no `z` (see CLAUDE.md, External data constraints).
 
+7. **Version 1 is solo (decided 25 Oct).** v1 is recorded by one person (Trish), both hands, two
+   lighting conditions. The 6-participant minimum and the Wed 4 Nov recruitment trigger no longer
+   gate v1; outside participants become a v2 extension. Consequences, stated plainly: v1 cannot
+   claim to work on unseen people, so "unseen-person" and per-person fairness rows are not
+   measured in v1 (evaluation splits by lighting/hand instead, see CLAUDE.md contract 2), and
+   the "never cut: testing on unseen people" rule is deferred to v2 or to IPN Hand as an external
+   check. User study still needs other people, but only as testers, not as training data.
+8. **One model for both hands.** Left hands are mirrored into the canonical right-hand shape
+   before features; recorded with `--hand left`, scored as a handedness slice.
+
 ## Overview
 
 Replace the trackpad with webcam hand gestures: point to move the cursor, pinch to click, swipe and
