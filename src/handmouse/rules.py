@@ -47,7 +47,8 @@ def fastest_stroke(c: np.ndarray, t: np.ndarray) -> np.ndarray:
 
 
 def classify_clip(landmarks: np.ndarray, timestamps: np.ndarray,
-                  motion_min: float = MOTION_MIN, multi_stroke: float = MULTI_STROKE) -> str:
+                  motion_min: float = MOTION_MIN, multi_stroke: float = MULTI_STROKE,
+                  frame_labels=None) -> str:
     c = landmarks[:, :, :2].mean(axis=1)
     t = np.asarray(timestamps)
     if len(c) >= 5:  # 3-frame median drops single-frame tracking glitches
@@ -63,7 +64,7 @@ def classify_clip(landmarks: np.ndarray, timestamps: np.ndarray,
         if abs(dx) >= abs(dy):
             return "swipe_right" if dx > 0 else "swipe_left"
         return "swipe_up" if dy < 0 else "other"  # no swipe-down class
-    labels = [frame_label(f) for f in landmarks]
+    labels = frame_labels(landmarks) if frame_labels else [frame_label(f) for f in landmarks]
     pinch_frac = labels.count("pinch") / len(labels)
     if pinch_frac > HOLD_FRAC:
         return "pinch_hold"

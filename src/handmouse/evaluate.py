@@ -10,6 +10,7 @@ from datetime import datetime
 from pathlib import Path
 
 from .data import Clip, load_clips
+from .pose_mlp import fit_pose_mlp
 from .rules import classify_clip
 
 RESULTS_DIR = Path(__file__).resolve().parents[2] / "results"
@@ -89,7 +90,8 @@ def main() -> None:
         return lambda c: classify_clip(c.landmarks, c.timestamps, m, s)
 
     fits = {"rules": lambda train: (lambda c: classify_clip(c.landmarks, c.timestamps)),
-            "rules-tuned": fit_tuned}
+            "rules-tuned": fit_tuned,
+            "mlp": lambda train: fit_pose_mlp(train, chosen)}
     clips = [c for c in load_clips() if c.label != "negative"]
     if not clips:
         sys.exit("no gesture clips in data/raw; run the recorder first")
