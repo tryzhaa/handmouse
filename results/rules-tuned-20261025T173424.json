@@ -1,0 +1,166 @@
+{
+  "model": "rules-tuned",
+  "split": "leave-one-condition-out",
+  "unseen_person": false,
+  "n_clips": 310,
+  "n_subjects": 1,
+  "macro_f1": 0.6632913472980435,
+  "per_group_macro_f1": {
+    "daylight/left": 0.6583641103764942,
+    "daylight/right": 0.7044467962469487,
+    "tube/right": 0.5895483746464139
+  },
+  "chosen_params": [
+    {
+      "motion_min": 0.12,
+      "multi_stroke": 2.5
+    },
+    {
+      "motion_min": 0.1,
+      "multi_stroke": 2.5
+    },
+    {
+      "motion_min": 0.08,
+      "multi_stroke": 2.5
+    }
+  ],
+  "labels": [
+    "draw_x",
+    "other",
+    "palm",
+    "pinch",
+    "pinch_hold",
+    "point",
+    "swipe_left",
+    "swipe_right",
+    "swipe_up",
+    "two_fingers"
+  ],
+  "confusion": [
+    [
+      24,
+      5,
+      0,
+      0,
+      0,
+      0,
+      4,
+      3,
+      4,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      21,
+      5,
+      1,
+      0,
+      0,
+      2,
+      1,
+      0
+    ],
+    [
+      0,
+      2,
+      0,
+      18,
+      6,
+      0,
+      1,
+      0,
+      3,
+      0
+    ],
+    [
+      1,
+      0,
+      0,
+      7,
+      21,
+      0,
+      1,
+      0,
+      0,
+      0
+    ],
+    [
+      2,
+      3,
+      1,
+      4,
+      3,
+      13,
+      0,
+      1,
+      3,
+      0
+    ],
+    [
+      9,
+      1,
+      2,
+      1,
+      0,
+      0,
+      22,
+      3,
+      2,
+      0
+    ],
+    [
+      4,
+      0,
+      4,
+      0,
+      0,
+      0,
+      2,
+      30,
+      0,
+      0
+    ],
+    [
+      5,
+      2,
+      2,
+      2,
+      1,
+      0,
+      1,
+      0,
+      27,
+      0
+    ],
+    [
+      0,
+      0,
+      2,
+      1,
+      0,
+      0,
+      0,
+      2,
+      1,
+      24
+    ]
+  ],
+  "false_triggers_per_hour": null,
+  "git": {
+    "commit": "906824a41d0bdf1901df740d78e66beeb0daee58",
+    "dirty": true
+  }
+}

@@ -101,3 +101,15 @@ def test_solo_data_splits_by_condition_not_subject():
     assert name == "leave-one-condition-out" and key(solo[0]) == "tube/left"
     duo = solo + [clip_of([hand()] * 3, "palm", "s2")]
     assert split_by(duo)[1] == "leave-one-subject-out"
+
+
+def test_motion_threshold_is_a_parameter_and_tuning_uses_train_only():
+    from handmouse.evaluate import tune_rules
+
+    small = along([0, 10, 29], [0, -0.12, -0.12], [0, 0, 0])  # 0.12-wide swipe
+    lms = np.stack(small)
+    ts = np.arange(len(lms)) / 30
+    assert classify_clip(lms, ts) != "swipe_left"  # below the default 0.15
+    assert classify_clip(lms, ts, motion_min=0.08) == "swipe_left"
+    train = [clip_of(small, "swipe_left"), clip_of([hand((True,) * 4)] * 30, "palm")]
+    assert tune_rules(train)[0] <= 0.10

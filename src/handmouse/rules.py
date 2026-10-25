@@ -46,7 +46,8 @@ def fastest_stroke(c: np.ndarray, t: np.ndarray) -> np.ndarray:
     return best
 
 
-def classify_clip(landmarks: np.ndarray, timestamps: np.ndarray) -> str:
+def classify_clip(landmarks: np.ndarray, timestamps: np.ndarray,
+                  motion_min: float = MOTION_MIN, multi_stroke: float = MULTI_STROKE) -> str:
     c = landmarks[:, :, :2].mean(axis=1)
     t = np.asarray(timestamps)
     if len(c) >= 5:  # 3-frame median drops single-frame tracking glitches
@@ -54,9 +55,9 @@ def classify_clip(landmarks: np.ndarray, timestamps: np.ndarray) -> str:
         t = t[1:-1]
     stroke = fastest_stroke(c, t)
     peak = float(np.linalg.norm(stroke))
-    if peak > MOTION_MIN:
+    if peak > motion_min:
         path = float(np.linalg.norm(np.diff(c, axis=0), axis=1).sum())
-        if path / peak > MULTI_STROKE:
+        if path / peak > multi_stroke:
             return "draw_x"
         dx, dy = stroke
         if abs(dx) >= abs(dy):

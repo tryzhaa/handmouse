@@ -1,6 +1,7 @@
 """Prompted recorder: python -m handmouse.recorder SUBJECT_ID --lighting daylight --hand right
 
-Shows "Next: <gesture>", counts down, records landmarks, labels the clip automatically.
+Shows the current and next gesture and records clips back to back (one get-ready at launch),
+labelling each automatically.
 Motion gestures show an arrow and record only the sweep (a rest beat after it is not recorded),
 so the return stroke does not end up in the clip. Landmarks only; no video (frozen contract 3).
 Re-record just the motion gestures with --motion-only. q quits.
@@ -21,15 +22,21 @@ DYNAMIC = {"swipe_left", "swipe_right", "swipe_up", "draw_x"}
 # Arrow direction on the (mirrored) screen: what you see is your own left/right.
 ARROW = {"swipe_left": (-1, 0), "swipe_right": (1, 0), "swipe_up": (0, -1)}
 HINT = {
+    "point": "Index finger out, hold steady",
+    "palm": "Open palm, hold steady",
+    "two_fingers": "Index + middle up, hold steady",
+    "pinch": "Tap thumb+index once, release at once",
+    "pinch_hold": "Pinch and KEEP it closed",
     "swipe_left": "ONE fast sweep LEFT, then stop",
     "swipe_right": "ONE fast sweep RIGHT, then stop",
     "swipe_up": "ONE fast sweep UP, then stop",
     "draw_x": "Draw ONE big X, then stop",
 }
-COUNTDOWN_S = 3.0
-STATIC_S = 1.5
+START_S = 3.0  # once, before the first clip only
+READY_S = 0.6  # shows the gesture before recording so the pose is formed when GO starts
+STATIC_S = 1.2
 DYNAMIC_S = {"swipe_left": 1.2, "swipe_right": 1.2, "swipe_up": 1.2, "draw_x": 2.0}
-REST_S = 1.0  # after a motion clip; not recorded, lets the hand come back
+REST_S = 0.6  # after every clip; not recorded, lets the hand return to open
 MIN_FRAMES = 10
 CYAN = (255, 230, 0)
 
@@ -48,9 +55,11 @@ def main() -> None:
     ap.add_argument("--repeats", type=int, default=10)
     ap.add_argument("--motion-only", action="store_true",
                     help="record only swipes and draw_x")
+    ap.add_argument("--only", nargs="+", choices=GESTURES, help="record just these gestures")
     args = ap.parse_args()
 
-    gestures = [g for g in GESTURES if g in DYNAMIC] if args.motion_only else GESTURES
+    gestures = args.only or ([g for g in GESTURES if g in DYNAMIC] if args.motion_only
+                             else GESTURES)
     queue = build_schedule(gestures, args.repeats)
     total = len(queue)
     cap = cv2.VideoCapture(0)
@@ -67,7 +76,7 @@ def main() -> None:
             cv2.arrowedLine(frame, (w // 2 - dx * 110, h // 2 - dy * 110),
                             (w // 2 + dx * 110, h // 2 + dy * 110), CYAN, 8, cv2.LINE_AA,
                             tipLength=0.35)
-        cv2.putText(frame, text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 255, 255), 2)
+        cv2.putText(frame, text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
         if sub:
             cv2.putText(frame, sub, (10, h - 20), cv2.FONT_HERSHEY_SIMPLEX, 0.8, CYAN, 2)
         cv2.imshow("handmouse recorder", frame)
@@ -90,21 +99,26 @@ def main() -> None:
         return True, ts, lms
 
     try:
+        if not phase(START_S, "Get ready: {left:.0f}")[0]:
+            return
         while queue:
             label = queue.pop(0)
             done = total - len(queue) - 1
             sub = HINT.get(label)
-            ok, _, _ = phase(COUNTDOWN_S, f"[{done}/{total}] {label} in {{left:.0f}}", label, sub)
+            nxt = queue[0] if queue else "done"
+            ok, _, _ = phase(READY_S, f"READY: {label}", label, sub)  # form the pose before GO
             if not ok:
                 return
             dur = DYNAMIC_S[label] if label in DYNAMIC else STATIC_S
-            ok, ts, lms = phase(dur, f"GO: {label}", label, sub, record=True)
+            ok, ts, lms = phase(dur, f"[{done}/{total}] GO: {label}  (next: {nxt})", label, sub,
+                                record=True)
             if not ok:
                 return
-            if label in DYNAMIC:
-                ok, _, _ = phase(REST_S, "REST: hand back to the middle")
-                if not ok:
-                    return
+            # Rest after every clip: without it the next clip starts in the previous pose
+            # (all pinch clips started already pinched).
+            ok, _, _ = phase(REST_S, f"REST: open your hand - next: {nxt}")
+            if not ok:
+                return
             if len(lms) < MIN_FRAMES:
                 print(f"hand lost during {label}; will redo")
                 queue.append(label)

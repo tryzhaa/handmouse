@@ -57,6 +57,21 @@ def loso(clips: list[Clip], fit, key=lambda c: c.subject_id):
     return y_true, y_pred, per_group
 
 
+MOTION_GRID = [0.08, 0.10, 0.12, 0.15, 0.20, 0.25]
+STROKE_GRID = [2.0, 2.5, 3.0, 3.5]
+
+
+def tune_rules(train: list[Clip]) -> tuple[float, float]:
+    """Pick the motion thresholds that maximise macro-F1 on the training clips only."""
+    truth = [c.label for c in train]
+    best = max(
+        ((m, s) for m in MOTION_GRID for s in STROKE_GRID),
+        key=lambda ms: macro_f1(truth, [classify_clip(c.landmarks, c.timestamps, *ms)
+                                        for c in train]),
+    )
+    return best
+
+
 def git_state() -> dict:
     def run(*a):
         return subprocess.run(["git", *a], check=False, capture_output=True, text=True).stdout.strip()
@@ -66,7 +81,15 @@ def git_state() -> dict:
 
 def main() -> None:
     model = sys.argv[1] if len(sys.argv) > 1 else "rules"
-    fits = {"rules": lambda train: (lambda c: classify_clip(c.landmarks, c.timestamps))}
+    chosen = []  # thresholds picked per fold, in sorted held-out-group order
+
+    def fit_tuned(train):
+        m, s = tune_rules(train)
+        chosen.append({"motion_min": m, "multi_stroke": s})
+        return lambda c: classify_clip(c.landmarks, c.timestamps, m, s)
+
+    fits = {"rules": lambda train: (lambda c: classify_clip(c.landmarks, c.timestamps)),
+            "rules-tuned": fit_tuned}
     clips = [c for c in load_clips() if c.label != "negative"]
     if not clips:
         sys.exit("no gesture clips in data/raw; run the recorder first")
@@ -82,6 +105,7 @@ def main() -> None:
         "n_subjects": n_subjects,
         "macro_f1": macro_f1(y_true, y_pred),
         "per_group_macro_f1": per_group,
+        "chosen_params": chosen,
         "labels": labels,
         "confusion": confusion_matrix(y_true, y_pred, labels),
         "false_triggers_per_hour": None,  # not measured: clip-level eval only
