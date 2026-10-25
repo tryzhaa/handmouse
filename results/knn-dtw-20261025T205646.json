@@ -1,0 +1,153 @@
+{
+  "model": "knn-dtw",
+  "split": "leave-one-condition-out",
+  "unseen_person": false,
+  "n_clips": 310,
+  "n_subjects": 1,
+  "macro_f1": 0.5485341443760412,
+  "per_group_macro_f1": {
+    "daylight/left": 0.5694014447884417,
+    "daylight/right": 0.5649195278227537,
+    "tube/right": 0.5128080649236479
+  },
+  "chosen_params": [],
+  "labels": [
+    "draw_x",
+    "other",
+    "palm",
+    "pinch",
+    "pinch_hold",
+    "point",
+    "swipe_left",
+    "swipe_right",
+    "swipe_up",
+    "two_fingers"
+  ],
+  "confusion": [
+    [
+      14,
+      0,
+      2,
+      7,
+      0,
+      0,
+      8,
+      5,
+      4,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      1,
+      0,
+      20,
+      5,
+      0,
+      0,
+      1,
+      1,
+      2,
+      0
+    ],
+    [
+      1,
+      0,
+      0,
+      17,
+      6,
+      0,
+      2,
+      1,
+      3,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      6,
+      22,
+      0,
+      0,
+      0,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      1,
+      5,
+      3,
+      14,
+      1,
+      1,
+      3,
+      0
+    ],
+    [
+      10,
+      0,
+      4,
+      5,
+      0,
+      0,
+      12,
+      4,
+      5,
+      0
+    ],
+    [
+      2,
+      0,
+      11,
+      6,
+      0,
+      0,
+      2,
+      18,
+      1,
+      0
+    ],
+    [
+      4,
+      0,
+      3,
+      7,
+      1,
+      0,
+      3,
+      1,
+      21,
+      0
+    ],
+    [
+      0,
+      0,
+      2,
+      2,
+      0,
+      0,
+      0,
+      0,
+      1,
+      25
+    ]
+  ],
+  "false_triggers_per_hour": null,
+  "git": {
+    "commit": "2da069693af7756db5449f9e6a9a5dcd18ba6286",
+    "dirty": true
+  }
+}
