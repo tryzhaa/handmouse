@@ -1,7 +1,7 @@
 """Evaluation harness: python -m handmouse.evaluate rules
 
-Leave-one-subject-out (frozen contract 2). Clip-level only for now: false triggers per hour
-(contract 5) needs the streaming harness, so it is written as null rather than omitted.
+Leave-one-subject-out (frozen contract 2). False triggers per hour (contract 5) come from the
+streaming spotter on negative recordings; null when they cannot be measured, never omitted.
 """
 import json
 import subprocess
@@ -13,6 +13,7 @@ from .data import Clip, load_clips
 from .motion_knn import fit_knn_dtw, fit_knn_dtw_stroke
 from .pose_mlp import fit_pose_mlp
 from .rules import classify_clip
+from .spotting import false_triggers
 
 RESULTS_DIR = Path(__file__).resolve().parents[2] / "results"
 
@@ -96,13 +97,17 @@ def main() -> None:
             "knn-dtw": fit_knn_dtw,
             "knn-dtw-norm": lambda train: fit_knn_dtw(train, normalise=True),
             "knn-dtw-stroke": lambda train: fit_knn_dtw_stroke(train, chosen)}
-    clips = [c for c in load_clips() if c.label != "negative"]
+    everything = load_clips()
+    clips = [c for c in everything if c.label != "negative"]
+    negatives = [c for c in everything if c.label == "negative"]
     if not clips:
         sys.exit("no gesture clips in data/raw; run the recorder first")
     key, split = split_by(clips)
     n_subjects = len({c.subject_id for c in clips})
     y_true, y_pred, per_group = loso(clips, fits[model], key)
     labels = sorted(set(y_true) | set(y_pred))
+    # Streaming spotter uses the rule frame labeller; other models are not streamed yet.
+    ft = false_triggers(negatives) if model == "rules" and negatives else None
     result = {
         "model": model,
         "split": split,
@@ -114,14 +119,20 @@ def main() -> None:
         "chosen_params": chosen,
         "labels": labels,
         "confusion": confusion_matrix(y_true, y_pred, labels),
-        "false_triggers_per_hour": None,  # not measured: clip-level eval only
+        "false_triggers_per_hour": ft["per_hour"] if ft else None,
+        "false_triggers": ft,
         "git": git_state(),
     }
     RESULTS_DIR.mkdir(exist_ok=True)
     out = RESULTS_DIR / f"{model}-{datetime.now():%Y%m%dT%H%M%S}.json"
     out.write_text(json.dumps(result, indent=2))
     print(f"{model}: macro-F1 {result['macro_f1']:.3f} over {len(clips)} clips, "
-          f"{n_subjects} subject(s), {split}; false triggers/hour: not measured")
+          f"{n_subjects} subject(s), {split}")
+    if ft:
+        print(f"false triggers: {ft['events']} in {ft['hand_visible_hours'] * 60:.1f} hand-visible "
+              f"min = {ft['per_hour']:.1f}/hour {ft['by_label']}")
+    else:
+        print("false triggers/hour: not measured (no negative clips, or model not streamed)")
     if n_subjects == 1:
         print("NOTE: single subject, so this says nothing about new people.")
     print("rows=true, cols=pred:", labels)
